@@ -68,3 +68,15 @@ jobs:
             rsdk/build/Release/RSDKv5*
           if-no-files-found: error
           retention-days: 14
+
+  physics-tests:
+    name: Test player physics module
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+      - name: Compile physics tests
+        run: |
+          g++ -std=c++17 -Wall -Wextra -Wpedantic game/physics/PlayerPhysics.cpp game/physics/tests/PlayerPhysicsTests.cpp -o physics-tests
+      - name: Run physics tests
+        run: ./physics-tests
