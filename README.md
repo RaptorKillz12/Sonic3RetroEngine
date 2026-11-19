@@ -1,30 +1,29 @@
-# Sonic 3 Retro Engine
+# Sonic3RetroEngine
 
-An original C++20 engine project inspired by the 2D platforming technology and gameplay systems of the Retro Engine-era Sonic games.
+This repository is the build and development workspace for a Sonic 3-style project based on the open-source **RSDKv5 Decompilation** engine.
 
-This repository does not contain Sega or Headcannon source code, proprietary game data, or extracted assets. Use only assets you created or are authorized to use.
+## Engine source
 
-## Milestone 1: Engine foundation
-- C++20 application entry point
-- SDL3 window, renderer, event loop, and frame timing
-- CMake build configuration
-- GitHub Actions checks for Windows and Linux
+The upstream engine is maintained at:
+https://github.com/RSDKModding/RSDKv5-Decompilation
 
-## Build
-Requirements: CMake 3.24+, a C++20 compiler, and internet access for CMake to download SDL3.
+The GitHub Actions workflow checks out that repository recursively (including its required submodules), then builds the standalone RSDKv5U engine for Windows and Linux.
 
-```sh
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build --config Release
-```
+**This repository does not include Sonic game code or copyrighted game assets.** The engine by itself is not a finished Sonic 3 game. Game logic and compatible, legally obtained data must be supplied separately.
 
-## Roadmap
-1. SDL3 platform layer and game loop
-2. Input abstraction and fixed-step simulation
-3. Sprite animation and rendering
-4. Tile maps and collision
-5. Momentum-based player physics
-6. Objects, enemies, rings, and level systems
-7. Audio, menus, save data, and platform polish
+## Build outputs
 
-Independent implementation; not an official Sonic product and not affiliated with Sega or Headcannon.
+Open the Actions tab and select the latest **Build RSDKv5 Engine** run. Successful builds are uploaded as workflow artifacts:
+
+- RSDKv5-Windows
+- RSDKv5-Linux
+
+## Android
+
+The upstream project has a separate Android Gradle/NDK project. Its documented setup expects a game project linked into the Android JNI build. We will add the Android APK workflow once the compatible game module and its required assets/data layout are in place; building the engine executable alone does not produce a playable Android game.
+
+## Upstream build settings
+
+- Engine revision: RSDKv5U (RETRO_REVISION=3)
+- Renderer: OpenGL (RETRO_SUBSYSTEM=OGL)
+- Mod loader: enabled
