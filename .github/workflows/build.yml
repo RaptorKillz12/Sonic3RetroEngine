@@ -1,22 +1,70 @@
-name: Build Engine
+name: Build RSDKv5 Engine
+
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
   workflow_dispatch:
+
+permissions:
+  contents: read
+
 jobs:
   desktop:
-    name: Build (${{ matrix.os }})
+    name: Build RSDKv5 (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            platform: Linux
+          - os: windows-latest
+            platform: Windows
+
     steps:
-      - name: Checkout
+      - name: Checkout project
         uses: actions/checkout@v4
-      - name: Configure
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-      - name: Build
-        run: cmake --build build --config Release --parallel
+
+      - name: Checkout RSDKv5 source and submodules
+        uses: actions/checkout@v4
+        with:
+          repository: RSDKModding/RSDKv5-Decompilation
+          ref: master
+          path: rsdk
+          submodules: recursive
+
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake build-essential pkg-config libogg-dev libtheora-dev libglfw3-dev libglew-dev
+
+      - name: Install Windows dependencies
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          vcpkg install libogg libtheora glfw3 glew --triplet x64-windows
+
+      - name: Configure RSDKv5 (Linux)
+        if: runner.os == 'Linux'
+        run: cmake -S rsdk -B rsdk/build -DCMAKE_BUILD_TYPE=Release -DRETRO_SUBSYSTEM=OGL -DRETRO_REVISION=3 -DRETRO_MOD_LOADER=ON
+
+      - name: Configure RSDKv5 (Windows)
+        if: runner.os == 'Windows'
+        run: cmake -S rsdk -B rsdk/build -DCMAKE_BUILD_TYPE=Release -DRETRO_SUBSYSTEM=OGL -DRETRO_REVISION=3 -DRETRO_MOD_LOADER=ON -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows
+        shell: pwsh
+
+      - name: Build RSDKv5
+        run: cmake --build rsdk/build --config Release --parallel
+
+      - name: Upload engine build
+        uses: actions/upload-artifact@v4
+        with:
+          name: RSDKv5-${{ matrix.platform }}
+          path: |
+            rsdk/build/RSDKv5*
+            rsdk/build/Release/RSDKv5*
+          if-no-files-found: error
+          retention-days: 14
