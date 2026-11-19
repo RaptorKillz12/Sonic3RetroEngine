@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.16)
+project(Sonic3PhysicsTests LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+add_executable(PlayerPhysicsTests PlayerPhysicsTests.cpp ../PlayerPhysics.cpp)
+target_include_directories(PlayerPhysicsTests PRIVATE ..)
+enable_testing()
+add_test(NAME PlayerPhysicsTests COMMAND PlayerPhysicsTests)
