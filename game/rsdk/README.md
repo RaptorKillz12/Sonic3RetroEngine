@@ -1,18 +1,29 @@
-# RSDKv5 player adapter
+# RSDKv5 legacy-v3 player bridge
 
-This is the first explicit connection point to the upstream RSDKv5 legacy-v3 player system.
+The upstream RSDKv5 code defines `RSDK::Legacy::v3::Player` as a legacy player data structure. It is **not** a normal `Entity` subclass and it does not provide a ready-made Sonic 3 player object or Sonic 3 state machine.
 
-It uses the engine's existing:
-- `Legacy::v3::Player` data structure
-- `ProcessPlayerControl` input processing
-- `ProcessPlayerTileCollisions` tile collision and path-grip implementation
+## Verified native calls
 
-The adapter configures the native player's speed/acceleration/gravity/jump fields and exposes the native input and collision calls. It deliberately does not call them from an invented update callback: the correct call order depends on the game project's player object and its existing state machine.
+The bridge targets declarations in the upstream headers:
 
-## Integration status
+- `RSDK/Scene/Legacy/v3/PlayerLegacyv3.hpp`: `Legacy::v3::Player` and `ProcessPlayerControl(Player*)`.
+- `RSDK/Scene/Legacy/v3/CollisionLegacyv3.hpp`: `ProcessPlayerTileCollisions(Player*)`.
 
-This is an adapter source file, not yet compiled into the upstream engine. The upstream decompilation repository is checked out by CI into a temporary Actions workspace; it is not vendored into this repository. To compile this adapter, add `game/rsdk/RSDKPlayerAdapter.cpp` to the actual RSDK game/mod target and add the upstream `RSDKv5` source include directory.
+Use `LegacyPlayerRuntime.hpp/.cpp` as the current bridge. It configures the legacy player's tuning fields, samples native controller input, and exposes the engine's native tile/path collision call.
 
-The tuning values are provisional 16.16 fixed-point examples, not measured Sonic 3 constants. Do not treat this as exact original physics.
+## Required call order inside a game/mod player update
 
-The independent `game/physics` and `game/systems` modules remain prototypes. Native RSDK collision should be authoritative once this adapter is integrated; do not run both collision solvers on the same player.
+1. Call `sampleLegacyPlayerInput(player)`.
+2. Run game-specific movement and state logic (ground, air, roll, jump, hurt, death, character ability).
+3. Call `resolveLegacyPlayerCollision(player)` after position/velocity movement.
+4. Update animation and camera from the resolved player state.
+
+The movement/state step is intentionally not fabricated here: the RSDK decompilation does not supply Sonic 3's player state machine. The game/mod must own that logic and register its player entity through the supported RSDK mod/object system.
+
+## Build status
+
+The bridge source requires upstream RSDKv5 include paths and must be added to a compatible game/mod target. The current GitHub workflow builds the upstream engine separately; it does not yet compile or load this bridge. No playable game object is claimed at this stage.
+
+The older `RSDKPlayerAdapter.hpp/.cpp` files are retained as the earlier prototype; use `LegacyPlayerRuntime.hpp/.cpp` for new integration work.
+
+The independent `game/physics` and `game/systems` modules remain prototypes. Once connected, RSDK legacy collision must be the authoritative collision solver; do not run both collision solvers against one player.
