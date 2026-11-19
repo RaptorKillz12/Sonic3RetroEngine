@@ -80,3 +80,15 @@ jobs:
           g++ -std=c++17 -Wall -Wextra -Wpedantic game/physics/PlayerPhysics.cpp game/physics/tests/PlayerPhysicsTests.cpp -o physics-tests
       - name: Run physics tests
         run: ./physics-tests
+
+  gameplay-system-tests:
+    name: Test gameplay systems
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+      - name: Compile gameplay systems tests
+        run: |
+          g++ -std=c++17 -Wall -Wextra -Wpedantic game/systems/GameSystems.cpp game/systems/tests/GameSystemsTests.cpp -o gameplay-tests
+      - name: Run gameplay systems tests
+        run: ./gameplay-tests
